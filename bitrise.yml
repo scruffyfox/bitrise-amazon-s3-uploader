@@ -1,5 +1,5 @@
-format_version: 1.0
-default_step_lib_source: https://github.com/scruffyfox/steps-amazon-s3-uploader.git
+format_version: 1.1.0
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:

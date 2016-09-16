@@ -95,7 +95,7 @@ function print_new_test {
   echo "[TEST]"
 }
 
-function run_target_command { 
+function run_target_command {
   print_and_do_command ruby ./s3deploy.rb
 }
 
@@ -105,25 +105,29 @@ function run_target_command {
 
 echo "Starting tests..."
 
-test_ipa_path="tests/testfile.ipa"
+test_file_path="tests/testfile.txt"
 test_results_success_count=0
 test_results_error_count=0
 
-# [TEST] Call the command with aws_access_key not set, 
+# [TEST] Call the command with aws_access_key not set,
 # it should raise an error message and exit
-# 
+#
 (
   print_new_test
   test_env_cleanup
 
   # Set env vars
-  export aws_secret_key="dsa4321"
-  export bucket_name="dsa4321"
-  export ipa_path="$test_ipa_path"
+  export aws_access_key="abc"
+  export aws_secret_key="def"
+  export bucket_name="123"
+  export file_path="$test_file_path"
+  export bucket_region="eu-west-1"
 
+  expect_success "aws_access_key environment variable should be set" is_not_empty "$aws_access_key"
   expect_success "aws_secret_key environment variable should be set" is_not_empty "$aws_secret_key"
   expect_success "bucket_name environment variable should be set" is_not_empty "$bucket_name"
-  expect_success "ipa_path environment variable should be set" is_not_empty "$ipa_path"
+  expect_success "bucket_region environment variable should be set" is_not_empty "$bucket_region"
+  expect_success "file_path environment variable should be set" is_not_empty "$file_path"
 
   # Send sms request
   expect_error "The command should be called, but should not complete sucessfully" run_target_command
