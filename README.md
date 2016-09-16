@@ -1,6 +1,6 @@
-# Amazon S3 Deploy
+# Amazon S3 Upload
 
-The new Amazon S3 Deploy step.
+Simple file uploader for Amazon S3
 
 ## How to use this Step
 
