@@ -1,3 +1,4 @@
+require 'time'
 
 # --------------------------
 # --- Constants & Variables
@@ -61,8 +62,7 @@ end
 # -----------------------
 
 options = {
-  ipa: ENV['ipa_path'],
-  dsym: ENV['dsym_path'],
+  file: ENV['file_path'],
   app_slug: ENV['app_slug'],
   build_slug: ENV['build_slug'],
   access_key: ENV['aws_access_key'],
@@ -76,8 +76,7 @@ options = {
 #
 # Print options
 log_info('Configs:')
-log_details("* ipa_path: #{options[:ipa]}")
-log_details("* dsym_path: #{options[:dsym]}")
+log_details("* file_path: #{options[:file]}")
 log_details("* app_slug: #{options[:app_slug]}")
 log_details("* build_slug: #{options[:build_slug]}")
 
@@ -96,12 +95,7 @@ status = 'success'
 begin
   #
   # Validate options
-  fail 'No IPA found to deploy. Terminating.' unless File.exist?(options[:ipa])
-
-  unless File.exist?(options[:dsym])
-    options[:dsym] = nil
-    log_warn("DSYM file not found. To generate debug symbols (dSYM) go to your Xcode Project's Settings - Build Settings - Debug Information Format and set it to DWARF with dSYM File.")
-  end
+  fail 'No file found to upload. Terminating.' unless File.exist?(options[:file])
 
   fail 'Missing required input: app_slug' if options[:app_slug].to_s.eql?('')
   fail 'Missing required input: build_slug' if options[:build_slug].to_s.eql?('')
@@ -125,6 +119,7 @@ begin
     base_path_in_bucket = options[:path_in_bucket]
   else
     utc_timestamp = Time.now.utc.to_i
+	log_info("timestamp #{utc_timestamp}")
     base_path_in_bucket = "bitrise_#{options[:app_slug]}/#{utc_timestamp}_build_#{options[:build_slug]}"
   end
 
@@ -144,98 +139,30 @@ begin
 
   #
   # ipa upload
-  log_info('Uploading IPA...')
+  log_info('Uploading file...')
 
-  ipa_path_in_bucket = "#{base_path_in_bucket}/#{File.basename(options[:ipa])}"
-  ipa_full_s3_path = s3_object_uri_for_bucket_and_path(options[:bucket_name], ipa_path_in_bucket)
-  public_url_ipa = public_url_for_bucket_and_path(options[:bucket_name], options[:bucket_region], ipa_path_in_bucket)
+  file_path_in_bucket = "#{base_path_in_bucket}/#{File.basename(options[:file])}"
+  file_full_s3_path = s3_object_uri_for_bucket_and_path(options[:bucket_name], file_path_in_bucket)
+  public_url_file = public_url_for_bucket_and_path(options[:bucket_name], options[:bucket_region], file_path_in_bucket)
 
-  fail 'Failed to upload IPA' unless do_s3upload(options[:ipa], ipa_full_s3_path, acl_arg)
+  fail 'Failed to upload file' unless do_s3upload(options[:file], file_full_s3_path, acl_arg)
 
-  export_output('S3_DEPLOY_STEP_URL_IPA', public_url_ipa)
+  export_output('S3_UPLOAD_STEP_URL', public_url_file)
 
-  log_done('IPA upload success')
+  log_done('File upload success')
 
-  #
-  # dsym upload
-  if options[:dsym]
-    log_info('Uploading dSYM...')
-
-    dsym_path_in_bucket = "#{base_path_in_bucket}/#{File.basename(options[:dsym])}"
-    dsym_full_s3_path = s3_object_uri_for_bucket_and_path(options[:bucket_name], dsym_path_in_bucket)
-    public_url_dsym = public_url_for_bucket_and_path(options[:bucket_name], options[:bucket_region], dsym_path_in_bucket)
-
-    fail 'Failed to upload dSYM' unless do_s3upload(options[:dsym], dsym_full_s3_path, acl_arg)
-
-    export_output('S3_DEPLOY_STEP_URL_DSYM', public_url_dsym)
-
-    log_done('dSYM upload success')
-  end
-
-  ENV['S3_DEPLOY_STEP_URL_IPA'] = "#{public_url_ipa}"
-
-  #
-  # plist generation - we have to run it after we have obtained the public url to the ipa
-  log_info('Generating Info.plist...')
-
-  success = system("sh #{@this_script_path}/gen_plist.sh")
-
-  fail 'Failed to generate info.plist' unless success
-
-  log_done('Generating Info.plist succed')
-
-  #
-  # plist upload
-  plist_local_path = 'Info.plist'
-  public_url_plist = ''
-
-  if File.exist?(plist_local_path)
-    log_info('Uploading Info.plist...')
-
-    plist_path_in_bucket = "#{base_path_in_bucket}/Info.plist"
-    plist_full_s3_path = "s3://#{options[:bucket_name]}/#{plist_path_in_bucket}"
-    public_url_plist = public_url_for_bucket_and_path(options[:bucket_name], options[:bucket_region], plist_path_in_bucket)
-
-    fail 'Failed to upload Info.plist' unless do_s3upload(plist_local_path, plist_full_s3_path, acl_arg)
-    fail 'Failed to remove Plist' unless system(%Q{rm "#{plist_local_path}"})
-
-    log_done('Info.plist upload success')
-  else
-    log_warn('NO Info.plist generated :<')
-  end
-  export_output('S3_DEPLOY_STEP_URL_PLIST', public_url_plist)
-
-  email_ready_link_url = "itms-services://?action=download-manifest&url=#{public_url_plist}"
-  export_output('S3_DEPLOY_STEP_EMAIL_READY_URL', email_ready_link_url)
+  ENV['S3_UPLOAD_STEP_URL'] = "#{public_url_file}"
 
   #
   # Print deploy infos
   log_info 'Deploy infos:'
   log_details("* Access Level: #{options[:acl]}")
-  log_details("* IPA: #{public_url_ipa}")
-
-  if options[:dsym]
-    log_details("* DSYM: #{public_url_dsym}")
-  else
-    log_wan(%Q{DSYM file not found.
-      To generate debug symbols (dSYM) go to your
-      Xcode Project's Settings - `Build Settings - Debug Information Format`
-      and set it to **DWARF with dSYM File**.})
-  end
-
-  log_details("* Plist: #{public_url_plist}")
-
-  log_info('Install link:')
-  log_details("#{email_ready_link_url}")
-
-  puts
-  log_details('Open this link on an iOS device to install the app')
-
+  log_details("* File: #{public_url_file}")
 rescue => ex
   status = 'failed'
   log_fail("#{ex}")
 ensure
-  export_output('S3_DEPLOY_STEP_STATUS', status)
+  export_output('S3_UPLOAD_STEP_STATUS', status)
   puts
   log_done("#{status}")
 end
