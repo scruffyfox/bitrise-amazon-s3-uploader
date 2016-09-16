@@ -78,7 +78,7 @@ workflows:
       - MY_STEPLIB_REPO_FORK_GIT_URL:
       - STEP_ID_IN_STEPLIB: amazon-s3-uploader
       - STEP_GIT_VERION_TAG_TO_SHARE: 1.0
-      - STEP_GIT_CLONE_URL: https://github.com/scruffyfox/steps-amazon-s3-uploader
+      - STEP_GIT_CLONE_URL: https://github.com/scruffyfox/bitrise-amazon-s3-uploader
     description: |-
       If this is the first time you try to share a Step you should
       first call: $ bitrise share
