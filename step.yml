@@ -1,41 +1,33 @@
-title: Deploy to Amazon S3
-summary: Upload your iOS Application to Amazon S3
+title: Amazon S3 File uploader
+summary: Upload a file to Amazon S3
 description: |-
-  Bitrise Step to Deploy an Xcode archive to Amazon S3.
-  Required: an Xcode Archive Step should run before this Step!
+  Bitrise Step to upload a file to Amazon S3.
 
   This Step requires an Amazon S3 account.
   To register an Amazon S3 account, [click here](http://aws.amazon.com/s3/).
-website: https://github.com/bitrise-io/steps-amazon-s3-deploy
-source_code_url: https://github.com/bitrise-io/steps-amazon-s3-deploy
-support_url: https://github.com/bitrise-io/steps-amazon-s3-deploy/issues
-host_os_tags:
-  - osx-10.9
-  - osx-10.10
-project_type_tags:
-  - ios
+website: https://github.com/scruffyfox/steps-amazon-s3-uploader
+source_code_url: https://github.com/scruffyfox/steps-amazon-s3-uploader
+support_url: https://github.com/scruffyfox/steps-amazon-s3-uploader/issues
 type_tags:
   - deploy
   - amazon
+  - s3
+  - upload
+  - uploader
 is_requires_admin_user: true
 is_always_run: false
-is_skippable: false
+is_skippable: true
 deps:
   brew:
   - name: awscli
 run_if: ""
 inputs:
-  - ipa_path: "$BITRISE_IPA_PATH"
+  - file_path: ""
     opts:
-      title: "IPA path"
-      summary: ""
+      title: "File path"
+      summary: "Path to the file to be uploaded"
       description: ""
       is_required: true
-  - dsym_path: "$BITRISE_DSYM_PATH"
-    opts:
-      title: "DSYM path (optional)"
-      summary: ""
-      description: ""
   - app_slug: "$BITRISE_APP_SLUG"
     opts:
       title: "BITRISE's App-Slug variable (passed automatically on Bitrise)"
@@ -91,46 +83,19 @@ inputs:
         - "public_read"
       is_required: true
 outputs:
-  - S3_DEPLOY_STEP_URL_IPA: ""
+  - S3_UPLOAD_STEP_URL: ""
     opts:
-      title: "Amazon S3 Deploy IPA URL"
-      summary: ""
+      title: "Amazon S3 Deploy URL"
+      summary: "Url generated for the uploaded file"
       description: ""
       is_expand: false
       is_required: true
       is_dont_change_value: true
-  - S3_DEPLOY_STEP_URL_DSYM: ""
-    opts:
-      title: "Amazon S3 Deploy DSYM URL"
-      summary: ""
-      description: ""
-      is_expand: false
-      is_required: true
-      is_dont_change_value: true
-  - S3_DEPLOY_STEP_URL_PLIST: ""
-    opts:
-      title: "Amazon S3 Deploy .plist URL"
-      summary: ""
-      description: ""
-      is_expand: false
-      is_required: true
-      is_dont_change_value: true
-  - S3_DEPLOY_STEP_STATUS: ""
+  - S3_UPLOAD_STEP_STATUS: ""
     opts:
       title: "Amazon S3 Deploy result ('success' or 'failed')"
       summary: ""
       description: ""
-      is_expand: false
-      is_required: true
-      is_dont_change_value: true
-  - S3_DEPLOY_STEP_EMAIL_READY_URL: ""
-    opts:
-      title: "Amazon S3 Deploy .plist URL"
-      summary: ""
-      description: |-
-        In a link-ready format, example:
-
-            itms-services://?action=download-manifest&url=...
       is_expand: false
       is_required: true
       is_dont_change_value: true
