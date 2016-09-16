@@ -16,10 +16,14 @@ type_tags:
   - uploader
 is_requires_admin_user: true
 is_always_run: false
-is_skippable: true
+is_skippable: false
 deps:
   brew:
   - name: awscli
+    bin_name: aws
+  apt_get:
+  - name: awscli
+    bin_name: aws
 run_if: ""
 inputs:
   - file_path: ""
