@@ -48,13 +48,19 @@ inputs:
     opts:
       title: "Amazon AWS Access Key"
       summary: ""
-      description: ""
+      description: |
+        Amazon AWS Access Key
+
+        See. https://github.com/scruffyfox/bitrise-amazon-s3-uploader/blob/master/SETUP_IAM_USER.md
       is_required: true
   - aws_secret_key: ""
     opts:
       title: "Amazon AWS Secret Access Key"
       summary: ""
-      description: ""
+      description: |
+        Amazon AWS Secret Access Key
+
+        See. https://github.com/scruffyfox/bitrise-amazon-s3-uploader/blob/master/SETUP_IAM_USER.md
       is_required: true
   - bucket_name: ""
     opts:
