@@ -50,12 +50,14 @@ inputs:
       summary: ""
       description: ""
       is_required: true
+      is_sensitive: true
   - aws_secret_key: ""
     opts:
       title: "Amazon AWS Secret Access Key"
       summary: ""
       description: ""
       is_required: true
+      is_sensitive: true
   - bucket_name: ""
     opts:
       title: "Amazon S3 Bucket Name"
